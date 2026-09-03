@@ -1,0 +1,82 @@
+{
+  "manifest_version": 3,
+  "name": "Instagram Reels + YouTube Shorts PiP Controls",
+  "version": "4.3.0",
+  "description": "Native PiP controls for Instagram Reels and YouTube Shorts with reliable navigation, auto-next, like shortcuts, Instagram downloads, and emergency close.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["tabs", "downloads"],
+  "host_permissions": [
+    "https://www.instagram.com/*",
+    "https://*.cdninstagram.com/*",
+    "https://*.fbcdn.net/*",
+    "https://www.youtube.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.instagram.com/*"],
+      "js": ["instagram-reels-pip.user.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.instagram.com/*"],
+      "js": ["bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    },
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["youtube-shorts-pip.user.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["youtube-bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    }
+  ],
+  "commands": {
+    "previous-reel-global-v2": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+8",
+        "linux": "Ctrl+Shift+8"
+      },
+      "description": "Previous Reel or Short in PiP",
+      "global": true
+    },
+    "next-reel-global-v2": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+9",
+        "linux": "Ctrl+Shift+9"
+      },
+      "description": "Next Reel or Short in PiP",
+      "global": true
+    },
+    "emergency-close-global-v1": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+0",
+        "linux": "Ctrl+Shift+0"
+      },
+      "description": "Close active PiP media tab",
+      "global": true
+    },
+    "like-reel-global-v1": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+7",
+        "linux": "Ctrl+Shift+7"
+      },
+      "description": "Like the current Reel or Short",
+      "global": true
+    }
+  }
+}
