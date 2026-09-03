@@ -278,7 +278,8 @@
         const tag = target?.tagName?.toLowerCase();
         if (tag === 'input' || tag === 'textarea' || target?.isContentEditable) return;
 
-        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        if (!event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey
+            && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
             event.preventDefault();
             event.stopImmediatePropagation();
             switchShort(event.key === 'ArrowDown' ? 'down' : 'up', 'arrow');

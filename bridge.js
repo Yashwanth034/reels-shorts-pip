@@ -68,7 +68,10 @@
     }
 
     if (message.type === 'switch' && (message.direction === 'up' || message.direction === 'down')) {
-      requestMain('switch', { direction: message.direction }, 5000).then(sendResponse);
+      // Instagram's virtualized feed can take several seconds to expose the next reel,
+      // especially while the tab is minimized/backgrounded. Keep the bridge alive long
+      // enough for the MAIN-world 12s switch resolver to finish.
+      requestMain('switch', { direction: message.direction }, 15000).then(sendResponse);
       return true;
     }
 

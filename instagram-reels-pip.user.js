@@ -224,7 +224,54 @@
         return document.scrollingElement || document.documentElement;
     }
 
+    function instagramNavigationButton(direction, currentVideo) {
+        const labels = direction === 'down'
+            ? ['Next', 'Next reel', 'Next Reel']
+            : ['Previous', 'Previous reel', 'Previous Reel'];
+        const candidates = [];
+
+        for (const label of labels) {
+            const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(label) : label;
+            for (const node of document.querySelectorAll(
+                `button[aria-label="${escaped}"], [role="button"][aria-label="${escaped}"], svg[aria-label="${escaped}"]`
+            )) {
+                const clickable = node.closest?.('button,[role="button"]') || node;
+                if (clickable instanceof HTMLElement && !candidates.includes(clickable)) candidates.push(clickable);
+            }
+        }
+
+        const videoRect = currentVideo?.getBoundingClientRect?.();
+        const usable = candidates.filter(button => {
+            if (!button.isConnected || button.id?.startsWith('ig-reels-pip')) return false;
+            const rect = button.getBoundingClientRect();
+            if (rect.width < 12 || rect.height < 12) return false;
+            if (rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth) return false;
+            // Instagram's reel-navigation arrows sit beside the reel. Avoid accidentally
+            // clicking a carousel control that is overlaid inside the reel itself.
+            if (videoRect && rect.left < videoRect.right - 8 && rect.right > videoRect.left + 8) return false;
+            return true;
+        });
+
+        usable.sort((a, b) => {
+            const ar = a.getBoundingClientRect();
+            const br = b.getBoundingClientRect();
+            const ay = ar.top + ar.height / 2;
+            const by = br.top + br.height / 2;
+            return direction === 'down' ? by - ay : ay - by;
+        });
+        return usable[0] || null;
+    }
+
     function nudgeFeed(direction, currentVideo, fraction = 0.92) {
+        // Prefer Instagram's own Reel navigation control. It drives Instagram's virtualized
+        // feed state correctly and keeps loading more reels, whereas raw scrollBy can stop
+        // working once Instagram recycles the surrounding DOM after many reels.
+        const nativeButton = instagramNavigationButton(direction, currentVideo);
+        if (nativeButton) {
+            nativeButton.click();
+            return;
+        }
+
         const scroller = findScrollContainer(currentVideo);
         const viewport = scroller === document.scrollingElement || scroller === document.documentElement
             ? window.innerHeight
@@ -749,7 +796,8 @@
         const tag = target?.tagName?.toLowerCase();
         if (tag === 'input' || tag === 'textarea' || target?.isContentEditable) return;
 
-        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        if (!event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey
+            && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
             event.preventDefault();
             event.stopImmediatePropagation();
             switchReel(event.key === 'ArrowDown' ? 'down' : 'up', 'arrow');
