@@ -533,22 +533,31 @@
         return true;
     }
 
+    function shortcodeFromMediaPath(value) {
+        return String(value || '').match(/\/(?:reel|reels|p|tv)\/([^/?#]+)/i)?.[1] || '';
+    }
+
     function reelShortcode(video = currentReelVideo()) {
-        const roots = [];
+        const mediaLinkSelector = 'a[href*="/reel/"], a[href*="/reels/"], a[href*="/p/"], a[href*="/tv/"]';
+
         if (video instanceof HTMLVideoElement) {
+            const wrappingLink = video.closest(mediaLinkSelector);
+            const wrappingCode = shortcodeFromMediaPath(wrappingLink?.getAttribute?.('href') || wrappingLink?.href);
+            if (wrappingCode) return wrappingCode;
+
             let node = video.parentElement;
-            for (let depth = 0; node && node !== document.body && depth < 12; depth++, node = node.parentElement) roots.push(node);
-        }
-        roots.push(document);
-
-        for (const root of roots) {
-            const link = root?.querySelector?.('a[href*="/reel/"], a[href*="/reels/"]');
-            const path = link?.getAttribute?.('href') || link?.href || '';
-            const match = path.match(/\/(?:reel|reels)\/([^/?#]+)/i);
-            if (match?.[1]) return match[1];
+            for (let depth = 0; node && node !== document.body && depth < 12; depth++, node = node.parentElement) {
+                const link = node.querySelector?.(mediaLinkSelector);
+                const code = shortcodeFromMediaPath(link?.getAttribute?.('href') || link?.href);
+                if (code) return code;
+            }
         }
 
-        return location.pathname.match(/\/(?:reel|reels)\/([^/?#]+)/i)?.[1] || '';
+        const locationCode = shortcodeFromMediaPath(location.pathname);
+        if (locationCode) return locationCode;
+
+        const fallbackLink = document.querySelector(mediaLinkSelector);
+        return shortcodeFromMediaPath(fallbackLink?.getAttribute?.('href') || fallbackLink?.href);
     }
 
     function indexInstagramMediaPayload(payload) {
@@ -828,7 +837,7 @@
         const btn = document.createElement('button');
         btn.id = 'ig-reels-pip-button';
         btn.type = 'button';
-        btn.textContent = '⏏ PiP 4.2.0';
+        btn.textContent = '⏏ PiP';
         Object.assign(btn.style, {
             position: 'fixed',
             bottom: '90px',
