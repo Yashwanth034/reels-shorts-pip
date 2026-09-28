@@ -33,6 +33,7 @@
         type: 'download',
         url: msg.url,
         filename: msg.filename,
+        requestId: msg.requestId,
       }).then(response => {
         window.postMessage({
           source: 'IG_REELS_PIP_DOWNLOAD_RESULT_V1',
@@ -61,6 +62,18 @@
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (!message || message.namespace !== 'ig-reels-pip') return undefined;
+
+    if (message.type === 'download-finished') {
+      window.postMessage({
+        source: 'IG_REELS_PIP_DOWNLOAD_FINISHED_V1',
+        requestId: message.requestId,
+        downloadId: message.downloadId,
+        state: message.state,
+        error: message.error || null,
+      }, '*');
+      sendResponse({ ok: true });
+      return false;
+    }
 
     if (message.type === 'status') {
       requestMain('status').then(sendResponse);
