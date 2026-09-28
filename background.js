@@ -1,6 +1,92 @@
 const IG_NS = 'ig-reels-pip';
 const YT_NS = 'yt-shorts-pip';
 
+const IG_DOWNLOAD_FOLDER = 'IG-Templates-60GB';
+const IG_DOWNLOAD_TRACKING_PREFIX = 'igReelsPipTrackedDownload:';
+const activeTrackedDownloads = new Map();
+
+function safeInstagramDownloadFilename(value) {
+  const raw = String(value || 'reel.mp4').split(/[\\/]/).pop() || 'reel.mp4';
+  let base = raw.replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^\.+/, '');
+  if (!base) base = 'reel.mp4';
+  if (!base.toLowerCase().endsWith('.mp4')) base += '.mp4';
+  return `${IG_DOWNLOAD_FOLDER}/${base}`;
+}
+
+function trackedDownloadKey(downloadId) {
+  return `${IG_DOWNLOAD_TRACKING_PREFIX}${downloadId}`;
+}
+
+function readTrackedDownload(downloadId, callback) {
+  const memoryItem = activeTrackedDownloads.get(String(downloadId));
+  if (memoryItem) {
+    callback(memoryItem);
+    return;
+  }
+
+  const key = trackedDownloadKey(downloadId);
+  chrome.storage.local.get({ [key]: null }, result => {
+    const item = result?.[key];
+    callback(item && typeof item === 'object' && !Array.isArray(item) ? item : null);
+  });
+}
+
+function rememberDownload(downloadId, tabId, requestId, callback = () => {}) {
+  const id = String(downloadId);
+  const key = trackedDownloadKey(downloadId);
+  const item = {
+    tabId: Number.isInteger(tabId) ? tabId : null,
+    requestId: typeof requestId === 'string' ? requestId : '',
+  };
+  activeTrackedDownloads.set(id, item);
+  chrome.storage.local.set({ [key]: item }, () => {
+    if (!activeTrackedDownloads.has(id)) {
+      chrome.storage.local.remove(key, callback);
+      return;
+    }
+    callback();
+  });
+}
+
+function forgetDownload(downloadId, callback = () => {}) {
+  activeTrackedDownloads.delete(String(downloadId));
+  chrome.storage.local.remove(trackedDownloadKey(downloadId), callback);
+}
+
+function eraseTrackedDownload(downloadId) {
+  chrome.downloads.erase({ id: downloadId }, () => {
+    void chrome.runtime.lastError;
+    forgetDownload(downloadId);
+  });
+}
+
+chrome.downloads.onChanged.addListener(delta => {
+  const state = delta?.state?.current;
+  if (state !== 'complete' && state !== 'interrupted') return;
+
+  readTrackedDownload(delta.id, item => {
+    if (!item) return;
+
+    const message = {
+      namespace: IG_NS,
+      type: 'download-finished',
+      requestId: item.requestId,
+      downloadId: delta.id,
+      state,
+      error: delta?.error?.current || null,
+    };
+
+    if (Number.isInteger(item.tabId)) {
+      Promise.resolve(safeSend(item.tabId, message)).finally(() => {
+        eraseTrackedDownload(delta.id);
+      });
+    } else {
+      eraseTrackedDownload(delta.id);
+    }
+  });
+});
+
+
 function namespaceForTab(tab) {
   const url = String(tab?.url || '');
   if (url.startsWith('https://www.instagram.com/')) return IG_NS;
@@ -91,7 +177,7 @@ function trustedInstagramMediaUrl(value) {
   }
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || message.namespace !== IG_NS) return undefined;
 
   if (message.type === 'download' && typeof message.url === 'string') {
@@ -102,13 +188,19 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     chrome.downloads.download({
       url: message.url,
-      filename: 'reel.mp4',
+      filename: safeInstagramDownloadFilename(message.filename),
       saveAs: false,
       conflictAction: 'uniquify',
     }, downloadId => {
       const error = chrome.runtime.lastError;
-      if (error) sendResponse({ ok: false, error: error.message });
-      else sendResponse({ ok: true, downloadId });
+      if (error) {
+        sendResponse({ ok: false, error: error.message });
+        return;
+      }
+
+      rememberDownload(downloadId, sender?.tab?.id, message.requestId, () => {
+        sendResponse({ ok: true, downloadId });
+      });
     });
     return true;
   }
