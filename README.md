@@ -1,4 +1,4 @@
-# Reels + Shorts + TikTok PiP
+# Instagram Reels + YouTube Shorts + TikTok PiP
 
 A lightweight Chrome extension for **Instagram Reels**, **YouTube Shorts**, and **TikTok** with reliable native Picture-in-Picture controls.
 
@@ -16,10 +16,15 @@ A lightweight Chrome extension for **Instagram Reels**, **YouTube Shorts**, and 
 
 ## Install
 
-1. Download or clone this repository.
+1. Clone this repository:
+
+   ```bash
+   git clone https://github.com/Yashwanth034/reels-shorts-tiktok-pip.git
+   ```
+
 2. Open `chrome://extensions`.
 3. Enable **Developer mode**.
-4. Click **Load unpacked** and select this folder.
+4. Click **Load unpacked** and select the cloned folder.
 
 You can customize shortcuts at `chrome://extensions/shortcuts`.
 
