@@ -1,5 +1,6 @@
 const IG_NS = 'ig-reels-pip';
 const YT_NS = 'yt-shorts-pip';
+const TT_NS = 'tiktok-pip';
 
 const IG_DOWNLOAD_FOLDER = 'IG-Templates-60GB';
 const IG_DOWNLOAD_TRACKING_PREFIX = 'igReelsPipTrackedDownload:';
@@ -91,6 +92,7 @@ function namespaceForTab(tab) {
   const url = String(tab?.url || '');
   if (url.startsWith('https://www.instagram.com/')) return IG_NS;
   if (url.startsWith('https://www.youtube.com/shorts/')) return YT_NS;
+  if (url.startsWith('https://www.tiktok.com/')) return TT_NS;
   return null;
 }
 
@@ -104,7 +106,7 @@ async function safeSend(tabId, message) {
 
 async function mediaTabs() {
   return await chrome.tabs.query({
-    url: ['https://www.instagram.com/*', 'https://www.youtube.com/shorts/*'],
+    url: ['https://www.instagram.com/*', 'https://www.youtube.com/shorts/*', 'https://www.tiktok.com/*'],
   });
 }
 

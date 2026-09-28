@@ -1,10 +1,10 @@
-# Reels + Shorts PiP
+# Reels + Shorts + TikTok PiP
 
-A lightweight Chrome extension for **Instagram Reels** and **YouTube Shorts** with reliable native Picture-in-Picture controls.
+A lightweight Chrome extension for **Instagram Reels**, **YouTube Shorts**, and **TikTok** with reliable native Picture-in-Picture controls.
 
 ## Features
 
-- Native PiP for Instagram Reels and YouTube Shorts
+- Native PiP for Instagram Reels, YouTube Shorts, and TikTok
 - Previous / Next navigation in PiP
 - Global keyboard shortcuts
 - Auto-next when a video ends
@@ -12,7 +12,7 @@ A lightweight Chrome extension for **Instagram Reels** and **YouTube Shorts** wi
 - Emergency close shortcut
 - Instagram Reel download with a clean `reel.mp4` filename
 
-> YouTube Shorts downloading is intentionally not included.
+> YouTube Shorts and TikTok downloading are intentionally not included.
 
 ## Install
 
@@ -25,4 +25,4 @@ You can customize shortcuts at `chrome://extensions/shortcuts`.
 
 ## Notes
 
-Built for Chromium-based browsers using Manifest V3. Instagram and YouTube may change their page structure over time, which can require selector updates.
+Built for Chromium-based browsers using Manifest V3. Instagram, YouTube, and TikTok may change their page structure over time, which can require selector updates.

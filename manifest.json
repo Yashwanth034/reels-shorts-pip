@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Instagram Reels + YouTube Shorts PiP Controls",
-  "version": "4.3.2",
-  "description": "Native PiP controls for Instagram Reels and YouTube Shorts with reliable navigation, auto-next, like shortcuts, Instagram downloads, and emergency close.",
+  "name": "Reels + Shorts + TikTok PiP Controls",
+  "version": "4.4.0",
+  "description": "Native PiP controls for Instagram Reels, YouTube Shorts, and TikTok with reliable navigation, auto-next, like shortcuts, Instagram downloads, and emergency close.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -14,7 +14,8 @@
     "https://www.instagram.com/*",
     "https://*.cdninstagram.com/*",
     "https://*.fbcdn.net/*",
-    "https://www.youtube.com/*"
+    "https://www.youtube.com/*",
+    "https://www.tiktok.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -43,6 +44,18 @@
       "js": ["youtube-bridge.js"],
       "run_at": "document_start",
       "world": "ISOLATED"
+    },
+    {
+      "matches": ["https://www.tiktok.com/*"],
+      "js": ["tiktok-pip.user.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.tiktok.com/*"],
+      "js": ["tiktok-bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
     }
   ],
   "commands": {
@@ -51,7 +64,7 @@
         "default": "Ctrl+Shift+8",
         "linux": "Ctrl+Shift+8"
       },
-      "description": "Previous Reel or Short in PiP",
+      "description": "Previous short-form video in PiP",
       "global": true
     },
     "next-reel-global-v2": {
@@ -59,7 +72,7 @@
         "default": "Ctrl+Shift+9",
         "linux": "Ctrl+Shift+9"
       },
-      "description": "Next Reel or Short in PiP",
+      "description": "Next short-form video in PiP",
       "global": true
     },
     "emergency-close-global-v1": {
@@ -75,7 +88,7 @@
         "default": "Ctrl+Shift+7",
         "linux": "Ctrl+Shift+7"
       },
-      "description": "Like the current Reel or Short",
+      "description": "Like the current short-form video",
       "global": true
     }
   }
